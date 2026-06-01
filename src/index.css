@@ -1,0 +1,6 @@
+@import "@visuallyjs/browser-ui/css/visuallyjs.css";
+@import "./gantt.css";
+
+body * {
+  font-family:'Verdana', sans-serif;
+}
