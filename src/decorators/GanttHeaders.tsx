@@ -1,10 +1,10 @@
-import {EVENT_DATA_UPDATED, EVENT_ZOOM} from "@visuallyjs/browser-ui"
+import {EVENT_DATA_UPDATED} from "@visuallyjs/browser-ui"
 import {useContext, useEffect, useState} from "react";
 import {Gantt, TimelineHeaderDayEntryValue, TimelineHeaderEntry} from "../defs.ts";
 import {GanttContext} from "../GanttProvider.tsx";
 import {getWeekOfYear, millisecondsToDays, MONTH_FORMAT, NARROW_DAY_FORMAT, SHORT_DAY_FORMAT} from "../util.ts";
 import {ONE_WEEK_IN_MILLISECONDS, STEP_WIDTH} from "../constants.ts";
-import {useSurface} from "@visuallyjs/browser-ui-react";
+import {useSurface, useZoom} from "@visuallyjs/browser-ui-react";
 
 
 export default function GanttHeaders() {
@@ -16,12 +16,8 @@ export default function GanttHeaders() {
     // @ts-ignore
     const [gantt, setGantt] = useState<Gantt>(null)
 
-    const [zoom, setZoom] = useState(1)
-    useSurface().then(surface => {
-        surface.bind(EVENT_ZOOM, (z) => {
-            setZoom(z.zoom)
-        })
-    })
+    const surface = useSurface()
+    const zoom = useZoom(surface)
 
     useEffect(repaint, [gantt])
 

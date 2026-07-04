@@ -29,8 +29,6 @@
   box-shadow: var(--vjs-gantt-shadow-sm);
     display:flex;
     flex-direction: column;
-    /*width:100%;*/
-    /*height:80vh;*/
 }
 
 .vjs-gantt-body {
@@ -45,6 +43,9 @@
 .vjs-gantt-body-content {
     margin-right: 0.5rem;
     margin-left: 0.5rem;
+    display:flex;
+    flex-grow:1;
+    flex-direction:column;
 }
 
 .vjs-gantt-canvas {

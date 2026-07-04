@@ -1,8 +1,8 @@
-import {EVENT_DATA_UPDATED, EVENT_REDO, EVENT_UNDO, EVENT_ZOOM, Node} from "@visuallyjs/browser-ui"
+import {EVENT_DATA_UPDATED, EVENT_REDO, EVENT_UNDO, Node} from "@visuallyjs/browser-ui"
 import {useContext, useEffect, useState} from "react";
 import {Gantt} from "../defs.ts";
 import {GanttContext} from "../GanttProvider";
-import {useSurface} from "@visuallyjs/browser-ui-react";
+import {useSurface, useZoom} from "@visuallyjs/browser-ui-react";
 import {TYPE_TASK_GROUP} from "../constants";
 import {editTask} from "../util";
 
@@ -16,12 +16,8 @@ export default function GanttLabels() {
     // @ts-ignore
     const [gantt, setGantt] = useState<Gantt>(null)
 
-    const [zoom, setZoom] = useState(1)
-    useSurface().then(surface => {
-        surface.bind(EVENT_ZOOM, (z) => {
-            setZoom(z.zoom)
-        })
-    })
+    const surface = useSurface()
+    const zoom = useZoom(surface)
 
     function repaint() {
         if (gantt != null) {

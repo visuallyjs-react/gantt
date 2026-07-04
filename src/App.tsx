@@ -18,18 +18,16 @@ function App() {
   // }
 
   return (<div className="vjs-gantt-main">
-      <SurfaceProvider>
+    <SurfaceProvider>
         <GanttProvider>
-            {/*<ControlsComponent zoomButtons={true} zoomToExtents={false}/>*/}
-          <GanttControls/>
-
+            <GanttControls/>
             <div className="vjs-gantt-body">
                 <GanttLabels/>
-                <div style={{display:"flex", flexGrow:1, flexDirection:"column"}} className="vjs-gantt-body-content">
+                <div className="vjs-gantt-body-content">
                     <GanttHeaders/>
                     <GanttChart labels={labels}/>
                 </div>
-            <GanttBodyDecorator/>
+                <GanttBodyDecorator/>
             </div>
         </GanttProvider>
       </SurfaceProvider>
