@@ -1,4 +1,4 @@
-import {BAR_HEIGHT} from "../constants"
+import {BAR_HEIGHT} from "../gantt/constants"
 import {JsxWrapperProps} from "@visuallyjs/browser-ui-react";
 import {Node} from "@visuallyjs/browser-ui";
 

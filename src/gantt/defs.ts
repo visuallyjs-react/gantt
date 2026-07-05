@@ -66,6 +66,7 @@ export interface Gantt {
     zoomIn:() => void
     zoomOut:() => void
     getZoom():number
+    load:(data:any, onload?:() => any) => void
 }
 
 export interface GanttOptions {
@@ -94,3 +95,5 @@ export interface GanttParserParameters {
 export interface GanttExporterParameters {
     gantt:Gantt
 }
+
+export type LabelEntry = {id:string, name:string, indent:number, type:string, collapsed?:boolean}

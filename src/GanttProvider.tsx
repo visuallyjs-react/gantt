@@ -1,7 +1,7 @@
 import {RefHandle, createRefHandler} from "@visuallyjs/browser-ui-react"
 import {Context, createContext, RefObject, ReactNode, useRef} from "react"
 
-import {Gantt} from "./defs"
+import {Gantt} from "./gantt/defs"
 
 export const GanttContext:Context<RefHandle<Gantt>> = createContext(null as unknown as RefHandle<Gantt>)
 

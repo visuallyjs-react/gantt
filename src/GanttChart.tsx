@@ -1,5 +1,5 @@
-import {GanttOptions} from "./defs"
-import {useContext, useEffect, useRef} from "react"
+import {GanttOptions} from "./gantt/defs"
+import {useContext, useEffect, useMemo, useRef} from "react"
 
 import {
     registerParser, registerExporter,
@@ -11,29 +11,33 @@ import {
     Node
 } from "@visuallyjs/browser-ui"
 
-import {GanttParser} from "./parser"
+import {GanttParser} from "./gantt/parser"
 import {
     GANTT,
     ONE_DAY_IN_MILLISECONDS,
-    STEP_WIDTH,
-    TYPE_TASK_GROUP
-} from "./constants"
-import {GanttExporter} from "./exporter"
+    STEP_WIDTH
+} from "./gantt/constants"
+import {GanttExporter} from "./gantt/exporter"
 
 import {
+    _recalculateTaskDuration,
     millisecondsToDays,
     pixelsToMilliseconds,
-    removeTask,
-    today
-} from "./util"
-import {BrowserUIReactModel, SurfaceComponent, SurfaceComponentRef} from "@visuallyjs/browser-ui-react"
+    removeTask
+} from "./gantt/util"
+import {
+    BrowserUIReactModel,
+    ReactSurfaceRenderOptions,
+    SurfaceComponent,
+    SurfaceComponentRef
+} from "@visuallyjs/browser-ui-react"
 
-import {subtaskDataset} from "./data-generator"
+import {subtaskDataset} from "./gantt/data-generator"
 import {GanttContext} from "./GanttProvider"
 import {generateView} from "./view"
-import { createRenderOptions } from "./render-options"
-import modelOptions from "./model-options.ts";
-import {createGantt} from "./gantt.ts";
+import { createRenderOptions } from "./gantt/render-options"
+import modelOptions from "./gantt/model-options.ts";
+import {createGantt} from "./gantt/gantt.ts";
 
 export default function GanttChart(props:GanttOptions) {
 
@@ -41,16 +45,22 @@ export default function GanttChart(props:GanttOptions) {
     registerExporter(GANTT, GanttExporter)
 
     const model = useRef<BrowserUIReactModel>(newInstance(modelOptions))
+    const surfaceComponent = useRef<SurfaceComponentRef>(null)
+    const surface = useRef<Surface>(null)
+    const initialized = useRef(false)
+
+    const options:GanttOptions = Object.assign({}, props || {})
+
+    const colorGenerator = useRef(options.colorGenerator || new RandomColorGenerator())
+
 
     useEffect(() => {
         const m = model.current
         const undoSub = () => {
-            _computeExtents()
             surface.current!.relayout()
         }
 
         const redoSub = () => {
-            _computeExtents()
             surface.current!.relayout()
         }
 
@@ -63,18 +73,11 @@ export default function GanttChart(props:GanttOptions) {
         }
     })
 
-    const surfaceComponent = useRef<SurfaceComponentRef>(null)
-    const surface = useRef<Surface>(null)
-
-    const initialized = useRef(false)
-
     function _taskMoved(p:VertexUpdatedParams) {
-        const startMillis = minValue.current + pixelsToMilliseconds(p.vertex.data['left'])
+        const startMillis = gantt.minValue() + pixelsToMilliseconds(p.vertex.data['left'])
         const endMillis = startMillis + pixelsToMilliseconds(p.vertex.data['size'])
         const dayRange = millisecondsToDays(endMillis - startMillis)
 
-        minValue.current = Math.min(startMillis, minValue.current)
-        maxValue.current = Math.max(endMillis, maxValue.current)
 
         model.current!.updateNode(p.vertex, {
             start:startMillis,
@@ -85,39 +88,18 @@ export default function GanttChart(props:GanttOptions) {
         surface.current!.relayout()
     }
 
-    function _recalculateTaskDuration(taskGroupId:string) {
 
-        const node = gantt.getTask(taskGroupId),
-            // @ts-ignore
-            subtasks = gantt.listSubtasks(node)
-
-        // @ts-ignore
-        let start = node.data['type'] === TYPE_TASK_GROUP ? Infinity : node.data['start']
-        // @ts-ignore
-        let end = node.data['type'] === TYPE_TASK_GROUP ? -Infinity : node.data['end']
-
-        if (subtasks && subtasks.length > 0) {
-
-            subtasks.forEach(st => {
-                const std = _recalculateTaskDuration(st.id)
-                start = Math.min(start, std.start)
-                end = Math.max(end, std.end)
-            })
-        }
-
-        return {start, end}
-    }
 
     function _recalc(vertex:Node) {
         let taskGroupId = vertex.data['parent']
         while (taskGroupId != null) {
-            const {start, end} = _recalculateTaskDuration(taskGroupId)
+            const {start, end} = _recalculateTaskDuration(gantt, taskGroupId)
             const dayRange = Math.floor((end - start) / ONE_DAY_IN_MILLISECONDS)
             model.current!.updateNode(taskGroupId, {
                 start,
                 end,
                 dayRange,
-                left:((start - minValue.current) / ONE_DAY_IN_MILLISECONDS) * STEP_WIDTH,
+                left:((start - gantt.minValue()) / ONE_DAY_IN_MILLISECONDS) * STEP_WIDTH,
                 size:dayRange * STEP_WIDTH
             })
 
@@ -125,58 +107,13 @@ export default function GanttChart(props:GanttOptions) {
             taskGroupId = taskGroup.data['parent']
         }
 
-        _computeExtents()
-
     }
-
-    function _computeExtents() {
-        let _min = minValue.current, _max = maxValue.current
-        const _one = function(entry:Node) {
-            _min = Math.min(_min, entry.data['start'])
-            _max = Math.max(_max, entry.data['end'])
-            gantt.listSubtasks(entry).forEach(_one)
-        }
-
-        gantt.listTopLevelTasks().forEach(_one)
-
-        minValue.current = _min
-        maxValue.current = _max
-    }
-
-    const options:GanttOptions = Object.assign({}, props || {})
-
-    const colorGenerator = useRef(options.colorGenerator || new RandomColorGenerator())
-
-    const minValue = useRef(today())
-    const maxValue = useRef(-today())
-    const rangeInDays = useRef(0)
 
     // create a Gantt chart
-    const gantt = createGantt(options, model.current, () => surface.current!, colorGenerator.current)
+    const gantt = useMemo(() => createGantt(options, model.current, () => surface.current!, colorGenerator.current), [])
 
     // store the gantt object on the context
     useContext(GanttContext).set(gantt)
-
-    function load(data:any) {
-
-        if (surface.current) {
-
-            minValue.current = today()
-            maxValue.current = today()
-            rangeInDays.current = 0
-
-            surface.current.model.load({
-                data,
-                type: GANTT,
-                onload: () => {
-                    _computeExtents()
-                },
-                parameters: {
-                    gantt
-                }
-            })
-        }
-    }
 
     useEffect(() => {
         if(!initialized.current) {
@@ -189,12 +126,12 @@ export default function GanttChart(props:GanttOptions) {
                 }
             })
 
-            load(subtaskDataset())
+            gantt.load(subtaskDataset())
         }
     })
 
     const viewOptions = generateView((id) => removeTask(gantt, surface.current!, id))
-    const renderOptions = createRenderOptions(minValue, _recalc)
+    const renderOptions:ReactSurfaceRenderOptions = createRenderOptions(() => gantt.minValue(), _recalc)
 
     return <SurfaceComponent viewOptions={viewOptions}
                           renderOptions={renderOptions}

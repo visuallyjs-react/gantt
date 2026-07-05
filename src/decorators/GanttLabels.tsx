@@ -1,12 +1,10 @@
 import {EVENT_DATA_UPDATED, EVENT_REDO, EVENT_UNDO, Node} from "@visuallyjs/browser-ui"
 import {useContext, useEffect, useState} from "react";
-import {Gantt} from "../defs.ts";
+import {Gantt, LabelEntry} from "../gantt/defs.ts";
 import {GanttContext} from "../GanttProvider";
 import {useSurface, useZoom} from "@visuallyjs/browser-ui-react";
-import {TYPE_TASK_GROUP} from "../constants";
-import {editTask} from "../util";
-
-type LabelEntry = {id:string, name:string, indent:number, type:string, collapsed?:boolean}
+import {TYPE_TASK_GROUP} from "../gantt/constants";
+import {editTask} from "../gantt/util";
 
 export default function GanttLabels() {
     //

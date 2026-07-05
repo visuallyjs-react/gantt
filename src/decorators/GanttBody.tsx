@@ -1,10 +1,10 @@
 import {DecoratorComponent} from "@visuallyjs/browser-ui-react";
 import { EVENT_DATA_UPDATED } from "@visuallyjs/browser-ui"
 import {useContext, useEffect, useState} from "react";
-import {Gantt} from "../defs.ts";
+import {Gantt} from "../gantt/defs.ts";
 import {GanttContext} from "../GanttProvider.tsx";
-import {millisecondsToDays} from "../util.ts";
-import {STEP_WIDTH} from "../constants.ts";
+import {millisecondsToDays} from "../gantt/util.ts";
+import {STEP_WIDTH} from "../gantt/constants.ts";
 
 type DayEntry = {
     clazz:string,

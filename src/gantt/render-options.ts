@@ -1,16 +1,16 @@
 import {InternalTask} from "./defs"
 import {ROW_HEIGHT, STEP_WIDTH} from "./constants"
 
-import { CONNECTOR_TYPE_ORTHOGONAL,
+import {
+    CONNECTOR_TYPE_ORTHOGONAL,
     ResizingToolsPlugin,
     EVENT_CANVAS_CLICK,
     Surface,
-PointXY, Size, Node } from "@visuallyjs/browser-ui"
+    PointXY, Size, Node, SurfaceOptions
+} from "@visuallyjs/browser-ui"
 import {millisecondsToDays, pixelsToMilliseconds} from "./util"
-import {RefObject} from "react"
-import {ReactSurfaceRenderOptions} from "@visuallyjs/browser-ui-react";
 
-export function createRenderOptions(minValue:RefObject<number>, recalcTask:(task:Node) => void):ReactSurfaceRenderOptions {
+export function createRenderOptions(minValue:() => number, recalcTask:(task:Node) => void):SurfaceOptions {
     return {
         activeFiltering:true,
 
@@ -44,7 +44,7 @@ export function createRenderOptions(minValue:RefObject<number>, recalcTask:(task
                     widthAttribute:"size",
                     // @ts-ignore
                     payloadGenerator:(node:Node, payload:InternalTask) => {
-                        const newStart = minValue.current + pixelsToMilliseconds(payload.left)
+                        const newStart = minValue() + pixelsToMilliseconds(payload.left)
                         const newEnd = newStart + pixelsToMilliseconds(payload.size)
                         return {
                             start:newStart,

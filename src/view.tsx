@@ -5,8 +5,8 @@ import {
 
 import {Node, EVENT_TAP, PlainArrowOverlay, NodeEventCallbackPayload, EdgeEventCallbackPayload} from "@visuallyjs/browser-ui"
 
-import {confirmTaskDeletion} from "./util"
-import {TYPE_MILESTONE, TYPE_TASK, TYPE_TASK_GROUP} from "./constants"
+import {confirmTaskDeletion} from "./gantt/util"
+import {TYPE_MILESTONE, TYPE_TASK, TYPE_TASK_GROUP} from "./gantt/constants"
 import TaskComponent from "./components/TaskComponent"
 import TaskGroupComponent from "./components/TaskGroupComponent"
 import MilestoneComponent from "./components/MilestoneComponent"

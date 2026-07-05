@@ -1,7 +1,7 @@
-import {Gantt} from "./defs"
+import {Gantt} from "./gantt/defs"
 import {useContext, useEffect, useState} from "react"
 import {GanttContext} from "./GanttProvider"
-import {addNewMilestone, addNewTask, addNewTaskGroup} from "./util"
+import {addNewMilestone, addNewTask, addNewTaskGroup} from "./gantt/util"
 
 export default function GanttControls() {
 

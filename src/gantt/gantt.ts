@@ -1,5 +1,5 @@
 import {Gantt, GanttOptions, ParsedTask} from "./defs.ts";
-import {BAR_HEIGHT, ROW_HEIGHT} from "./constants.ts";
+import {BAR_HEIGHT, GANTT, ROW_HEIGHT} from "./constants.ts";
 import {addTask, exportToConsole, relayoutTasks, removeTask, toggleCollapse} from "./util.ts";
 import {BrowserUIModel, ColorGenerator, Node, Surface} from "@visuallyjs/browser-ui";
 
@@ -37,7 +37,17 @@ export function createGantt(options:GanttOptions, model:BrowserUIModel, getSurfa
         },
         zoomIn: () => getSurface().zoomIn(),
         zoomOut: () => getSurface().zoomOut(),
-        getZoom:() => getSurface().getZoom() || 1
+        getZoom:() => getSurface().getZoom() || 1,
+        load:(data:any, onload?:() => any) => {
+            model.load({
+                data,
+                type: GANTT,
+                onload,
+                parameters: {
+                    gantt
+                }
+            })
+        }
     }
 
     return gantt
