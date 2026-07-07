@@ -2,8 +2,8 @@ import {GANTT, ONE_DAY_IN_MILLISECONDS, STEP_WIDTH, TYPE_MILESTONE, TYPE_TASK, T
 
 import {Gantt, InternalTask, ParsedTask} from "./defs"
 import {APPEND_TO_CURRENT, Node, Surface, uuid, VisuallyJsModel} from "@visuallyjs/browser-ui"
-import {Dialogs} from "./dialogs.ts";
-import {RefObject} from "react";
+import {Dialogs} from "./dialogs";
+import {RefObject} from "@visuallyjs/browser-ui-svelte";
 
 export const NARROW_DAY_FORMAT = new Intl.DateTimeFormat("default", { weekday: "narrow" })
 export const SHORT_DAY_FORMAT = new Intl.DateTimeFormat("default", { weekday: "short" })
@@ -120,8 +120,6 @@ export function padNumber(n:number):string {
 export function serializeDate(d:Date):string {
     return `${d.getFullYear()}${padNumber(d.getMonth() + 1)}${padNumber(d.getDate())}`
 }
-
-
 
 const dialogs = new Dialogs()
 
@@ -253,7 +251,7 @@ export function confirmTaskDeletion(title: string, message: string, onOK: () => 
     dialogs.confirm({ title, message, onOK })
 }
 
-export function removeTask(gantt:Gantt, surface:Surface, taskId:string, noNeedToConfirm?:boolean) {
+export function removeTask(gantt:Gantt, taskId:string, noNeedToConfirm?:boolean) {
     const entry = gantt.getTask(taskId)
     if(entry != null) {
 
@@ -277,10 +275,10 @@ export function removeTask(gantt:Gantt, surface:Surface, taskId:string, noNeedTo
 
             _one(entry)
 
-            surface!.model.transaction(() => {
-                tasks.forEach(t => surface!.model.removeNode(t))
-                groups.forEach(t => surface!.model.removeNode(t))
-                relayoutTasks(gantt, surface)
+            gantt.model.transaction(() => {
+                tasks.forEach(t => gantt.model.removeNode(t))
+                groups.forEach(t => gantt.model.removeNode(t))
+                relayoutTasks(gantt)
             })
 
 
@@ -294,24 +292,25 @@ export function removeTask(gantt:Gantt, surface:Surface, taskId:string, noNeedTo
     }
 }
 
-export function relayoutTasks(gantt:Gantt, surface:Surface) {
+export function relayoutTasks(gantt:Gantt) {
     let y = 0
-    surface!.model.transaction(() => {
+    const surface = gantt.getSurface()
+    gantt.model.transaction(() => {
         const _one = (node: Node, visible: boolean) => {
             const isCollapsed = node.data['collapsed'] === true
 
-            surface.setVisible(node, visible)
+            surface?.setVisible(node, visible)
             node.getEdges().forEach(edge => {
                 // An edge should be visible only if both its source and target are visible.
                 // However, setVisible(node, false) usually handles attached edges.
                 // To be safe and meet the requirement "ensure that all edges connected to some hidden task element are correctly hidden":
-                const sourceVisible = surface.isVisible(edge.source)
-                const targetVisible = surface.isVisible(edge.target)
-                surface!.setVisible(edge, sourceVisible && targetVisible)
+                const sourceVisible = surface?.isVisible(edge.source)
+                const targetVisible = surface?.isVisible(edge.target)
+                surface?.setVisible(edge, sourceVisible && targetVisible)
             })
 
             if (visible) {
-                surface!.model.updateNode(node.id, {
+                surface?.model.updateNode(node.id, {
                     top: y + ((gantt.rowHeight - gantt.barHeight) / 2)
                 })
                 y += gantt.rowHeight
@@ -323,7 +322,7 @@ export function relayoutTasks(gantt:Gantt, surface:Surface) {
         gantt.listTopLevelTasks().forEach(e => _one(e, true))
     }, APPEND_TO_CURRENT)
 
-    surface!.relayout()
+    surface?.relayout()
 
 }
 
@@ -341,13 +340,13 @@ export function addTask(gantt:Gantt, model:VisuallyJsModel, data:ParsedTask) {
     model.addNode(t)
 }
 
-export function toggleCollapse(gantt:Gantt, surface:Surface, taskId:string) {
-    const node = surface.model.getNode(taskId)
+export function toggleCollapse(gantt:Gantt, taskId:string) {
+    const node = gantt.model.getNode(taskId)
     if (node) {
-        surface.model.updateNode(taskId, {
+        gantt.model.updateNode(taskId, {
             collapsed: !node.data['collapsed']
         })
-        relayoutTasks(gantt, surface)
+        relayoutTasks(gantt)
     }
 }
 
@@ -390,4 +389,23 @@ export function _computeExtents(gantt:Gantt, min:RefObject<number>, max:RefObjec
 
     min.current = _min
     max.current = _max
+}
+
+export function _recalc(gantt:Gantt, vertex:Node) {
+    let taskGroupId = vertex.data['parent']
+    while (taskGroupId != null) {
+        const {start, end} = _recalculateTaskDuration(gantt, taskGroupId)
+        const dayRange = Math.floor((end - start) / ONE_DAY_IN_MILLISECONDS)
+        gantt.model.updateNode(taskGroupId, {
+            start,
+            end,
+            dayRange,
+            left:((start - gantt.minValue()) / ONE_DAY_IN_MILLISECONDS) * STEP_WIDTH,
+            size:dayRange * STEP_WIDTH
+        })
+
+        const taskGroup = gantt.model.getNode(taskGroupId)
+        taskGroupId = taskGroup.data['parent']
+    }
+
 }

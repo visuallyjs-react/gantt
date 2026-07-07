@@ -1,4 +1,4 @@
-import {InternalTask} from "./defs"
+import {Gantt, InternalTask} from "./defs"
 import {ROW_HEIGHT, STEP_WIDTH} from "./constants"
 
 import {
@@ -8,9 +8,9 @@ import {
     Surface,
     PointXY, Size, Node, SurfaceOptions
 } from "@visuallyjs/browser-ui"
-import {millisecondsToDays, pixelsToMilliseconds} from "./util"
+import {_recalc, millisecondsToDays, pixelsToMilliseconds} from "./util"
 
-export function createRenderOptions(minValue:() => number, recalcTask:(task:Node) => void):SurfaceOptions {
+export function createRenderOptions(gantt:Gantt):SurfaceOptions {
     return {
         activeFiltering:true,
 
@@ -44,7 +44,7 @@ export function createRenderOptions(minValue:() => number, recalcTask:(task:Node
                     widthAttribute:"size",
                     // @ts-ignore
                     payloadGenerator:(node:Node, payload:InternalTask) => {
-                        const newStart = minValue() + pixelsToMilliseconds(payload.left)
+                        const newStart = gantt.minValue() + pixelsToMilliseconds(payload.left)
                         const newEnd = newStart + pixelsToMilliseconds(payload.size)
                         return {
                             start:newStart,
@@ -53,7 +53,7 @@ export function createRenderOptions(minValue:() => number, recalcTask:(task:Node
                         }
                     },
                     onEdit:(task:Node, surface:Surface) => {
-                        recalcTask(task)
+                        _recalc(gantt, task)
                         surface.relayout()
                     },
                    resizeY:false,

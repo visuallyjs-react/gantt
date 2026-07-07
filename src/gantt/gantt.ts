@@ -1,9 +1,27 @@
-import {Gantt, GanttOptions, ParsedTask} from "./defs.ts";
-import {BAR_HEIGHT, GANTT, ROW_HEIGHT} from "./constants.ts";
-import {addTask, exportToConsole, relayoutTasks, removeTask, toggleCollapse} from "./util.ts";
-import {BrowserUIModel, ColorGenerator, Node, Surface} from "@visuallyjs/browser-ui";
+import {Gantt, GanttOptions, ParsedTask} from "./defs";
+import {BAR_HEIGHT, GANTT, ROW_HEIGHT} from "./constants";
+import {
+    _recalc,
+    addTask,
+    exportToConsole,
+    millisecondsToDays,
+    pixelsToMilliseconds,
+    relayoutTasks,
+    removeTask,
+    toggleCollapse
+} from "./util";
+import {
+    BrowserUIModel,
+    EVENT_NODE_UPDATED, EVENT_REDO, EVENT_UNDO,
+    Node, RandomColorGenerator,
+    Surface, VERTEX_UPDATE_REASON_MOVED,
+    type VertexUpdatedParams
+} from "@visuallyjs/browser-ui";
 
-export function createGantt(options:GanttOptions, model:BrowserUIModel, getSurface:() => Surface, colorGenerator:ColorGenerator):Gantt {
+export function createGantt(options:GanttOptions, model: BrowserUIModel, getSurface:() => Surface):Gantt {
+
+    const colorGenerator = options.colorGenerator || new RandomColorGenerator()
+
     const gantt:Gantt = {
         assignColor:() => colorGenerator.generate(),
         barHeight:options.barHeight || BAR_HEIGHT,
@@ -20,10 +38,11 @@ export function createGantt(options:GanttOptions, model:BrowserUIModel, getSurfa
         dayNameFormat:options.timeline ? options.timeline.dayNameFormat || "short" : "short",
         exportToConsole:() => exportToConsole(gantt, model),
         model,
-        relayoutTasks:() => relayoutTasks(gantt, getSurface()),
+        getSurface:getSurface,
+        relayoutTasks:() => relayoutTasks(gantt),
         headerSize:0,
-        toggleCollapse:(id:string) => toggleCollapse(gantt, getSurface(), id),
-        removeTask:(id:string) => removeTask(gantt, getSurface(), id),
+        toggleCollapse:(id:string) => toggleCollapse(gantt, id),
+        removeTask:(id:string) => removeTask(gantt, id),
         listTopLevelTasks():Array<Node> {
             return model.getNodes().filter(n => n.data.parent == null)
         },
@@ -35,9 +54,9 @@ export function createGantt(options:GanttOptions, model:BrowserUIModel, getSurfa
         getTask(id:string) {
             return model.getNode(id)
         },
-        zoomIn: () => getSurface().zoomIn(),
-        zoomOut: () => getSurface().zoomOut(),
-        getZoom:() => getSurface().getZoom() || 1,
+        zoomIn: () => getSurface()?.zoomIn(),
+        zoomOut: () => getSurface()?.zoomOut(),
+        getZoom:() => getSurface()?.getZoom() || 1,
         load:(data:any, onload?:() => any) => {
             model.load({
                 data,
@@ -49,6 +68,38 @@ export function createGantt(options:GanttOptions, model:BrowserUIModel, getSurfa
             })
         }
     }
+
+    model.bind<VertexUpdatedParams>(EVENT_NODE_UPDATED, (p) => {
+        if(p.reason === VERTEX_UPDATE_REASON_MOVED) {
+            _taskMoved(p)
+        }
+    })
+
+    function _taskMoved(p:VertexUpdatedParams) {
+        const minValue = gantt.minValue()
+        const startMillis = minValue + pixelsToMilliseconds(p.vertex.data['left'])
+        const endMillis = startMillis + pixelsToMilliseconds(p.vertex.data['size'])
+        const dayRange = millisecondsToDays(endMillis - startMillis)
+
+        model.updateNode(p.vertex, {
+            start:startMillis,
+            end:endMillis,
+            dayRange
+        })
+        _recalc(gantt, p.vertex)
+        getSurface()?.relayout()
+    }
+
+    const undoSub = () => {
+        getSurface()?.relayout()
+    }
+
+    const redoSub = () => {
+        getSurface()?.relayout()
+    }
+
+    model.bind(EVENT_UNDO, undoSub)
+    model.bind(EVENT_REDO, redoSub)
 
     return gantt
 }

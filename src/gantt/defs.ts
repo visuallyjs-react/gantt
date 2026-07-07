@@ -1,4 +1,4 @@
-import {Node, ColorGenerator, BrowserUIModel} from "@visuallyjs/browser-ui"
+import {Node, ColorGenerator, BrowserUIModel, Surface} from "@visuallyjs/browser-ui"
 
 export interface Task {
     id:string
@@ -56,6 +56,7 @@ export interface Gantt {
   showDayNumber:boolean
   exportToConsole:()=>void
   model:BrowserUIModel
+    getSurface:() => Surface
   headerSize:number
   toggleCollapse:(taskId:string) => void
   removeTask:(taskId:string, noNeedToConfirm?:boolean) => void

@@ -121,9 +121,6 @@ export function GanttParser(data:SerializedGantt, model:VisuallyJsModel, paramet
 
     _registerNodes(rootId)
 
-    // gantt.minValue.current = minDate
-    // gantt.maxValue.current = maxDate
-
     nodes.forEach(node => {
         node.left = ((node.start - minDate) / ONE_DAY_IN_MILLISECONDS) * STEP_WIDTH,
         node.top = y + ((gantt.rowHeight - gantt.barHeight) / 2)

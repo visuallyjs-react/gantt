@@ -18,7 +18,7 @@ import MilestoneComponent from "./components/MilestoneComponent"
  * @param model
  * @param removeTask
  */
-export function generateView(removeTask:(id:string)=> void):ReactSurfaceViewOptions {
+export function generateView():ReactSurfaceViewOptions {
 
     return {
         nodes:{
@@ -30,15 +30,15 @@ export function generateView(removeTask:(id:string)=> void):ReactSurfaceViewOpti
                 }
             },
             [TYPE_TASK]:{
-                jsx:(ctx:JsxWrapperProps<Node>) => <TaskComponent ctx={ctx} removeTask={removeTask}/>,
+                jsx:(ctx:JsxWrapperProps<Node>) => <TaskComponent ctx={ctx}/>,
                 parent:"selectable"
             },
             [TYPE_TASK_GROUP]:{
-                jsx:(ctx:JsxWrapperProps<Node>) => <TaskGroupComponent ctx={ctx} removeTask={removeTask}/>,
+                jsx:(ctx:JsxWrapperProps<Node>) => <TaskGroupComponent ctx={ctx}/>,
                 parent:"selectable"
             },
             [TYPE_MILESTONE]:{
-                jsx:(ctx:JsxWrapperProps<Node>) => <MilestoneComponent ctx={ctx} removeTask={removeTask}/>,
+                jsx:(ctx:JsxWrapperProps<Node>) => <MilestoneComponent ctx={ctx}/>,
                 parent:"selectable"
             }
         },

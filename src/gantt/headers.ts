@@ -1,6 +1,6 @@
-import {Gantt, TimelineHeaderEntry} from "./defs.ts";
-import {getWeekOfYear, millisecondsToDays, MONTH_FORMAT, NARROW_DAY_FORMAT, SHORT_DAY_FORMAT} from "./util.ts";
-import {ONE_WEEK_IN_MILLISECONDS, STEP_WIDTH} from "./constants.ts";
+import {Gantt, TimelineHeaderEntry} from "./defs";
+import {getWeekOfYear, millisecondsToDays, MONTH_FORMAT, NARROW_DAY_FORMAT, SHORT_DAY_FORMAT} from "./util";
+import {ONE_WEEK_IN_MILLISECONDS, STEP_WIDTH} from "./constants";
 
 function _addTimelineDays(gantt:Gantt, headers:Array<TimelineHeaderEntry>) {
     const days = []
