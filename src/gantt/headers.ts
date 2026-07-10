@@ -1,12 +1,13 @@
-import {Gantt, TimelineHeaderEntry} from "./defs";
+import {TimelineHeaderEntry} from "./defs";
 import {getWeekOfYear, millisecondsToDays, MONTH_FORMAT, NARROW_DAY_FORMAT, SHORT_DAY_FORMAT} from "./util";
 import {ONE_WEEK_IN_MILLISECONDS, STEP_WIDTH} from "./constants";
+import {Gantt} from "./gantt.ts";
 
-function _addTimelineDays(gantt:Gantt, headers:Array<TimelineHeaderEntry>) {
+export function _addTimelineDays(gantt:Gantt, headers:Array<TimelineHeaderEntry>) {
     const days = []
     const formatter = gantt.dayNameFormat === "short" ? SHORT_DAY_FORMAT : NARROW_DAY_FORMAT
-    const currentDay = new Date(gantt.minValue())
-    while (currentDay.getTime() < gantt.maxValue()) {
+    const currentDay = new Date(gantt.displayStart)
+    while (currentDay.getTime() < gantt.displayEnd) {
         days.push({ day:currentDay.getDate(), start:currentDay.getTime(), end:currentDay.getTime(), label:formatter.format(currentDay), size:STEP_WIDTH, id:`day_${days.length}`, type:"day"})
         currentDay.setDate(currentDay.getDate() + 1)
     }
@@ -14,15 +15,15 @@ function _addTimelineDays(gantt:Gantt, headers:Array<TimelineHeaderEntry>) {
     headers.unshift({values:days, id:"day"})
 }
 
-function _addTimelineWeeks(gantt:Gantt, headers:Array<TimelineHeaderEntry>) {
+export function _addTimelineWeeks(gantt:Gantt, headers:Array<TimelineHeaderEntry>) {
     const weeks = []
 
-    let currentWeekDetails = getWeekOfYear(gantt.minValue())
+    let currentWeekDetails = getWeekOfYear(gantt.displayStart)
     const currentWeek = new Date(currentWeekDetails[1])
     let currentWeekMillis = currentWeek.getTime()
-    while(currentWeekMillis < gantt.maxValue()) {
-        const start = Math.max(gantt.minValue(), currentWeekMillis)
-        const end = Math.min(currentWeekMillis + ONE_WEEK_IN_MILLISECONDS, gantt.maxValue())
+    while(currentWeekMillis < gantt.displayEnd) {
+        const start = Math.max(gantt.displayStart, currentWeekMillis)
+        const end = Math.min(currentWeekMillis + ONE_WEEK_IN_MILLISECONDS, gantt.displayEnd)
         weeks.push({
             start,
             end,
@@ -39,21 +40,21 @@ function _addTimelineWeeks(gantt:Gantt, headers:Array<TimelineHeaderEntry>) {
     headers.unshift({values:weeks, id:"weeks"})
 }
 
-function _addTimelineMonths(gantt:Gantt, headers:Array<TimelineHeaderEntry>) {
+export function _addTimelineMonths(gantt:Gantt, headers:Array<TimelineHeaderEntry>) {
     const months = []
-    const currentMonth = new Date(gantt.minValue())
+    const currentMonth = new Date(gantt.displayStart)
     currentMonth.setDate(1)
 
     let currentMonthStart = currentMonth.getTime()
-    while(currentMonthStart < gantt.maxValue()) {
-        const start = Math.max(gantt.minValue(), currentMonthStart)
+    while(currentMonthStart < gantt.displayEnd) {
+        const start = Math.max(gantt.displayStart, currentMonthStart)
         const monthName = MONTH_FORMAT.format(new Date(start))
 
         const nextMonth = new Date(currentMonthStart)
         nextMonth.setMonth(nextMonth.getMonth() + 1)
         nextMonth.setDate(1)
 
-        const end = Math.min(gantt.maxValue(), nextMonth.getTime())
+        const end = Math.min(gantt.displayEnd, nextMonth.getTime())
         months.push({
             start:start,
             end:end,
@@ -68,10 +69,10 @@ function _addTimelineMonths(gantt:Gantt, headers:Array<TimelineHeaderEntry>) {
     headers.unshift({values:months, id:"months"})
 }
 
-function _addTimelineQuarters(gantt:Gantt, headers:Array<TimelineHeaderEntry>) {
+export function _addTimelineQuarters(gantt:Gantt, headers:Array<TimelineHeaderEntry>) {
     const quarters = []
 
-    const startDate = new Date(gantt.minValue())
+    const startDate = new Date(gantt.displayStart)
     startDate.setDate(1)
     const currentMonth = startDate.getMonth()
     let currentQuarter = Math.floor(currentMonth / 3)
@@ -81,9 +82,9 @@ function _addTimelineQuarters(gantt:Gantt, headers:Array<TimelineHeaderEntry>) {
     startDate.setDate(1)
     let currentQuarterStart = startDate.getTime()
 
-    while (currentQuarterStart < gantt.maxValue()) {
+    while (currentQuarterStart < gantt.displayEnd) {
 
-        const start = Math.max(gantt.minValue(), currentQuarterStart)
+        const start = Math.max(gantt.displayStart, currentQuarterStart)
 
         currentQuarter = Math.floor(startDate.getMonth() / 3)
         const label = `Q${currentQuarter + 1} ${startDate.getFullYear()}`
@@ -92,7 +93,7 @@ function _addTimelineQuarters(gantt:Gantt, headers:Array<TimelineHeaderEntry>) {
         nextQuarter.setMonth(nextQuarter.getMonth() + 3)
         nextQuarter.setDate(1)
 
-        const end = Math.min(gantt.maxValue(), nextQuarter.getTime())
+        const end = Math.min(gantt.displayEnd, nextQuarter.getTime())
         quarters.push({
             start:start,
             end:end,
@@ -127,7 +128,7 @@ export default function configureHeaders(gantt:Gantt) {
     }
 
     return {
-        dayRange:millisecondsToDays(gantt.maxValue() - gantt.minValue()),
+        dayRange:millisecondsToDays(gantt.displayEnd - gantt.displayStart),
         headers,
         headerSize:gantt.rowHeight * headers.length
     }

@@ -10,3 +10,5 @@ export const TYPE_TASK = "task"
 export const TYPE_TASK_GROUP = "taskGroup"
 export const TYPE_MILESTONE = "milestone"
 
+export const CLASS_DAY_STRIPE = "vjs-gantt-day-stripe"
+export const CLASS_DAY_STRIPE_ALT = "vjs-gantt-day-stripe-alt"

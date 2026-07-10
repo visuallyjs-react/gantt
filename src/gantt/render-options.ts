@@ -1,4 +1,4 @@
-import {Gantt, InternalTask} from "./defs"
+import {InternalTask} from "./defs"
 import {ROW_HEIGHT, STEP_WIDTH} from "./constants"
 
 import {
@@ -8,7 +8,8 @@ import {
     Surface,
     PointXY, Size, Node, SurfaceOptions
 } from "@visuallyjs/browser-ui"
-import {_recalc, millisecondsToDays, pixelsToMilliseconds} from "./util"
+import {millisecondsToDays, pixelsToMilliseconds} from "./util"
+import {Gantt} from "./gantt.ts";
 
 export function createRenderOptions(gantt:Gantt):SurfaceOptions {
     return {
@@ -53,10 +54,10 @@ export function createRenderOptions(gantt:Gantt):SurfaceOptions {
                         }
                     },
                     onEdit:(task:Node, surface:Surface) => {
-                        _recalc(gantt, task)
+                        gantt.recalc(task)
                         surface.relayout()
                     },
-                   resizeY:false,
+                    resizeY:false,
                     resizeMethod:"borders"
                 }
             }

@@ -2,7 +2,7 @@ import {BAR_HEIGHT} from "../gantt/constants"
 import {JsxWrapperProps} from "@visuallyjs/browser-ui-react";
 import {Node} from "@visuallyjs/browser-ui";
 
-export default function MilestoneComponent(p:{ctx:JsxWrapperProps<Node>,removeTask:(id:string) => any}) {
+export default function MilestoneComponent(p:{ctx:JsxWrapperProps<Node>}) {
 
     const { data } = p.ctx
 

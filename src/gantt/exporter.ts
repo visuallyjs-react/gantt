@@ -1,6 +1,7 @@
 import {Edge, VisuallyJsModel, Node} from "@visuallyjs/browser-ui"
-import {Gantt,GanttExporterParameters, SerializedTask} from "./defs"
+import {GanttExporterParameters, SerializedTask} from "./defs"
 import {TYPE_MILESTONE} from "./constants"
+import {Gantt} from "./gantt.ts";
 
 /**
  * Find the upstream dependencies for this task, if any

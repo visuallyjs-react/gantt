@@ -5,11 +5,11 @@ import {
 
 import {Node, EVENT_TAP, PlainArrowOverlay, NodeEventCallbackPayload, EdgeEventCallbackPayload} from "@visuallyjs/browser-ui"
 
-import {confirmTaskDeletion} from "./gantt/util"
 import {TYPE_MILESTONE, TYPE_TASK, TYPE_TASK_GROUP} from "./gantt/constants"
 import TaskComponent from "./components/TaskComponent"
 import TaskGroupComponent from "./components/TaskGroupComponent"
 import MilestoneComponent from "./components/MilestoneComponent"
+import {Gantt} from "./gantt/gantt.ts";
 
 
 /**
@@ -18,7 +18,7 @@ import MilestoneComponent from "./components/MilestoneComponent"
  * @param model
  * @param removeTask
  */
-export function generateView():ReactSurfaceViewOptions {
+export function generateView(gantt:Gantt):ReactSurfaceViewOptions {
 
     return {
         nodes:{
@@ -56,9 +56,7 @@ export function generateView():ReactSurfaceViewOptions {
             ],
                 events:{
                 [EVENT_TAP]:(e:EdgeEventCallbackPayload) => {
-                    confirmTaskDeletion("Delete", `Delete dependency?`, () => {
-                        e.model.removeEdge(e.obj)
-                    })
+                    gantt.maybeDeleteDependency(e.obj)
                 }
             }
         }

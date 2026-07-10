@@ -3,7 +3,7 @@ import {useContext, useEffect, useMemo, useRef} from "react"
 
 import {
     registerParser, registerExporter,
-    newInstance, Surface
+    newInstance
 } from "@visuallyjs/browser-ui"
 
 import {GanttParser} from "./gantt/parser"
@@ -24,7 +24,7 @@ import {GanttContext} from "./GanttProvider"
 import {generateView} from "./view"
 import { createRenderOptions } from "./gantt/render-options"
 import modelOptions from "./gantt/model-options.ts";
-import {createGantt} from "./gantt/gantt.ts";
+import {Gantt} from "./gantt/gantt.ts";
 
 export default function GanttChart(props:GanttOptions) {
 
@@ -33,13 +33,12 @@ export default function GanttChart(props:GanttOptions) {
 
     const model = useRef<BrowserUIReactModel>(newInstance(modelOptions))
     const surfaceComponent = useRef<SurfaceComponentRef>(null)
-    const surface = useRef<Surface>(null)
     const initialized = useRef(false)
 
     const options:GanttOptions = Object.assign({}, props || {})
 
     // create a Gantt chart
-    const gantt = useMemo(() => createGantt(options, model.current, () => surface.current!), [])
+    const gantt = useMemo(() => new Gantt(options, model.current, () => surfaceComponent.current?.getSurface()!), [])
 
     // store the gantt object on the context
     useContext(GanttContext).set(gantt)
@@ -51,7 +50,7 @@ export default function GanttChart(props:GanttOptions) {
         }
     })
 
-    const viewOptions = generateView()
+    const viewOptions = generateView(gantt)
     const renderOptions:ReactSurfaceRenderOptions = createRenderOptions(gantt)
 
     return <SurfaceComponent viewOptions={viewOptions}
