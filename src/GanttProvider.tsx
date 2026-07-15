@@ -26,8 +26,8 @@ export function useGantt() {
             };
 
             // Check immediately if the Gantt is already available
-            if (ref._ref().current) {
-                setGantt(ref._ref().current);
+            if (ref.ref().current) {
+                setGantt(ref.ref().current);
             } else {
                 // If not, subscribe to changes
                 ref.listen(listener);
