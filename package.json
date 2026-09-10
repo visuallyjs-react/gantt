@@ -1,7 +1,7 @@
 {
   "name": "visuallyjs-react-gantt",
   "private": true,
-  "version": "1.2.5",
+  "version": "1.2.6",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,7 +12,7 @@
   "dependencies": {
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "@visuallyjs/browser-ui-react": "^1.2.5"
+    "@visuallyjs/browser-ui-react": "^1.2.6"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
