@@ -281,6 +281,7 @@ export class Gantt extends EventGenerator {
         })
 
         const undoRedo = () => {
+            this.displayEnd = computeMax(this.model)
             this.configureHeaders()
             this.configureLabels()
             this.configureDays()
